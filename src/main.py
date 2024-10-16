@@ -84,7 +84,7 @@ class PixabayDownloader:
 class PixabayGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Pixabay Image Viewer")
+        self.root.title("ImageFinder")
         self.root.geometry("800x600")
 
         self.api_key = PixabayDownloader.load_api_key()

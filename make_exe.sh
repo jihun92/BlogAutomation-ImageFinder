@@ -1,1 +1,1 @@
-pyinstaller --onefile --windowed --icon="/Users/kimjihun/Documents/git/image_searcher/img/icon-windowed.icns" --add-data "/Users/kimjihun/Documents/git/image_searcher/conf/config.yaml:conf" /Users/kimjihun/Documents/git/image_searcher/src/pixabay_image_search.py
+pyinstaller --onefile --windowed --icon="img/icon-windowed.icns" --add-data "conf/config.yaml:conf" src/main.py

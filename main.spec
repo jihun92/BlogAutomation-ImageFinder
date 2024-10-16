@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['/Users/kimjihun/Documents/git/image_searcher/src/pixabay_image_search.py'],
+    ['src/main.py'],
     pathex=[],
     binaries=[],
-    datas=[('/Users/kimjihun/Documents/git/image_searcher/conf/config.yaml', 'conf')],
+    datas=[('conf/config.yaml', 'conf')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='pixabay_image_search',
+    name='main',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -35,11 +35,11 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['/Users/kimjihun/Documents/git/image_searcher/img/icon-windowed.icns'],
+    icon=['img/icon-windowed.icns'],
 )
 app = BUNDLE(
     exe,
-    name='pixabay_image_search.app',
-    icon='/Users/kimjihun/Documents/git/image_searcher/img/icon-windowed.icns',
+    name='main.app',
+    icon='img/icon-windowed.icns',
     bundle_identifier=None,
 )
