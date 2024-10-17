@@ -20,7 +20,15 @@ def get_resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-CONFIG_PATH = get_resource_path('conf/config.yaml')  # 경로 설정
+# 사용자 홈 디렉토리에 .ImageFinder 폴더 경로 설정
+HOME_DIR = os.path.expanduser("~")
+CONFIG_DIR = os.path.join(HOME_DIR, ".ImageFinder")
+CONFIG_PATH = os.path.join(CONFIG_DIR, "pixabay.yaml")
+
+# 폴더가 없으면 생성
+if not os.path.exists(CONFIG_DIR):
+    os.makedirs(CONFIG_DIR)
+
 IMAGES_PER_PAGE = 20
 
 class TextHandler(logging.Handler):
@@ -38,23 +46,28 @@ class TextHandler(logging.Handler):
 class PixabayDownloader:
     @staticmethod
     def load_api_key(config_path: str = CONFIG_PATH) -> str:
+        """ pixabay.yaml 파일에서 API 키를 로드합니다. """
         try:
+            # 파일이 없으면 오류를 발생시킴
+            if not os.path.exists(config_path):
+                raise FileNotFoundError(f"Config file {config_path} not found.")
+            
             with open(config_path, 'r') as file:
-                config = yaml.safe_load(file)
-            logging.info("API key loaded successfully.")
-            return config['pixabay']['ClientSecret']
-        except (FileNotFoundError, KeyError, yaml.YAMLError):
-            logging.error(f"Error loading API key from {config_path}.")
-            raise RuntimeError(f"Error loading API key from {config_path}")
+                api_key = yaml.safe_load(file)
+                return api_key
+        except Exception as e:
+            print(f"Failed to load API key: {e}")
+            return None
 
     @staticmethod
     def save_api_key(new_key: str, config_path: str = CONFIG_PATH):
+        """ 새로운 API 키를 pixabay.yaml 파일에 저장합니다. """
         try:
-            with open(config_path, 'r') as file:
-                config = yaml.safe_load(file)
-            config['pixabay']['ClientSecret'] = new_key
+            # 디렉토리가 없으면 생성
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            
             with open(config_path, 'w') as file:
-                yaml.safe_dump(config, file)
+                yaml.safe_dump(new_key, file)
             logging.info("API key updated successfully.")
         except Exception as e:
             logging.error(f"Error updating API key: {e}")

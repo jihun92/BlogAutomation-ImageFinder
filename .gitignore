@@ -1,6 +1,7 @@
 # 빌드 폴더 무시
 build/
 dist/
+*.spec
 
 # Python 캐시 파일 무시
 __pycache__/
@@ -32,6 +33,7 @@ coverage/
 
 # 특정 환경 구성 파일 무시
 .env
+
 
 # KEY 파일 무시
 conf/config.yaml
