@@ -177,12 +177,14 @@ class PixabayGUI:
         self.keyword = keyword
         self.page = 1
         self.image_refs.clear()
+        self.selected_images.clear()  # 새로운 검색 전에 선택 이미지 초기화
         self.inner_frame.destroy()
         self.inner_frame = tk.Frame(self.canvas)
         self.canvas.create_window((0, 0), window=self.inner_frame, anchor='nw')
 
         fetch_thread = Thread(target=self.fetch_images, args=(self.page,))
         fetch_thread.start()
+
 
     def fetch_images(self, page):
         try:
@@ -195,13 +197,15 @@ class PixabayGUI:
             image_urls = PixabayDownloader.fetch_image_urls(self.keyword, self.api_key, page)
 
             if image_urls:
+                # 이전에 선택한 이미지와 상태 초기화
+                self.selected_images.clear()
                 self.display_images(image_urls)
                 self.update_buttons_state(True)
                 logging.info(f"'{self.keyword}'로 {len(image_urls)}개의 이미지 검색 완료.")
             else:
                 logging.info(f"'{self.keyword}'로 검색된 이미지가 없습니다.")
                 messagebox.showinfo("No Results", "No images found.")
-
+                
         except Exception as e:
             logging.error(f"이미지 검색 중 오류 발생: {str(e)}")
             messagebox.showerror("Error", f"Error fetching images: {str(e)}")
@@ -247,6 +251,8 @@ class PixabayGUI:
         else:
             self.selected_images.append(url)
             label.config(borderwidth=4, relief="sunken")
+            
+        # 선택된 이미지가 업데이트되면 버튼 상태를 변경
         self.update_buttons_state(bool(self.selected_images))
 
     def select_all_images(self):
@@ -298,19 +304,46 @@ class PixabayGUI:
             self.download_selected_images()
 
     def download_selected_images(self):
+        if not self.selected_images:
+            messagebox.showwarning("No Selection", "No images selected for download.")
+            return
+
         for url in self.selected_images:
-            response = requests.get(url)
-            img_data = response.content
-            img = Image.open(BytesIO(img_data))
-            filename = os.path.join(self.download_folder, os.path.basename(url))
-            img.save(filename)
+            try:
+                response = requests.get(url)
+                response.raise_for_status()  # 오류 발생 시 예외 처리
+
+                img_data = response.content
+                img = Image.open(BytesIO(img_data))
+
+                filename = os.path.join(self.download_folder, os.path.basename(url))
+
+                # 파일 이름 중복 처리 (중복 시 _1, _2 등 추가)
+                if os.path.exists(filename):
+                    base, ext = os.path.splitext(filename)
+                    counter = 1
+                    while os.path.exists(filename):
+                        filename = f"{base}_{counter}{ext}"
+                        counter += 1
+
+                img.save(filename)
+
+            except requests.exceptions.RequestException as e:
+                logging.error(f"Error downloading image from {url}: {str(e)}")
+                messagebox.showerror("Download Error", f"Failed to download {url}.\nError: {str(e)}")
+
         messagebox.showinfo("Download Complete", "Images have been downloaded.")
         logging.info(f"Downloaded {len(self.selected_images)} images.")
 
+
     def copy_selected_urls(self):
-        pyperclip.copy("\n".join(self.selected_images))
-        messagebox.showinfo("Copied", "Selected URLs copied to clipboard.")
-        logging.info("Copied selected image URLs to clipboard.")
+        if self.selected_images:
+            pyperclip.copy("\n".join(self.selected_images))
+            messagebox.showinfo("Copied", "Selected URLs copied to clipboard.")
+            logging.info("Copied selected image URLs to clipboard.")
+        else:
+            messagebox.showwarning("No Selection", "No images selected to copy.")
+
 
     def change_api_key(self):
         new_key = simpledialog.askstring("Input", "Enter new API key:", parent=self.root)
